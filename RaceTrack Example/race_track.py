@@ -110,7 +110,7 @@ class Env:
         """Makes the velocity of car zero, and selects any one of the starting
         positions in green.
         """
-        state = np.zeros(4)
+        state = np.zeros(4, dtype="int")
         state[0], state[1] = self.select_random_start_position()
         return state
 
@@ -144,10 +144,11 @@ class Env:
             return False
 
     def step(self, state, action):
+        reward = -1
         self.data.episode["A"].append(action)
         if self.is_finish_line_crossed(state, action):
             new_state = self.get_new_state(state, action)
-            self.data.episode["R"].append(1)
+            self.data.episode["R"].append(reward)
             self.data.episode["S"].append(new_state)
             self.step_count += 1
             return None, new_state
@@ -158,8 +159,8 @@ class Env:
         else:
             new_state = self.get_new_state(state, action)
 
-        self.data.episode["R"].append(-1)
+        self.data.episode["R"].append(reward)
         self.data.episode["S"].append(new_state)
         self.step_count += 1
 
-        return -1, new_state
+        return reward, new_state
