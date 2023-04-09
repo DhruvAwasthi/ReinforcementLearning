@@ -1,8 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pygame
 from matplotlib import colors
-
-import numpy as np
 
 
 actions = [
@@ -195,6 +194,70 @@ class Agent:
         """
         return self.map_to_two_dimension(policy(state, self.get_indices_of_valid_actions(state[2:4])))
 
+
+class Visualizer:
+    """The visualizer takes the state of the system and creates apygame window
+    to visualize the current location of the agent on top of the racetrack.
+    """
+    def __int__(self, data):
+        self.data = data
+        self.window = False
+        self.cell_edge = 9
+        self.width = 26 * self.cell_edge
+        self.height = 13 * self.cell_edge
+
+    def create_window(self):
+        """Creates window and assigns self.display variable
+        """
+        # self.display = pygame.display.set_mode((self.width, self.height))
+        self.display = pygame.display.set_mode((self.width, self.height))
+        pygame.display.set_caption("Racetrack")
+
+    def setup(self):
+        self.create_window()
+        self.window = True
+
+    def close_window(self):
+        self.window = False
+        pygame.quit()
+
+    def draw(self, state=np.array([])):
+        self.display.fill(0)
+        for i in range(26):
+            for j in range(13):
+                if self.data.racetrack[i, j] != -1:
+                    color = (0, 0, 0)
+                    if self.data.racetrack[i, j] == 0:
+                        color = (0, 0, 255)
+                    elif self.data.racetrack[i, j] == 1:
+                        color = (0, 255, 0)
+                    elif self.data.racetrack[i, j] == 2:
+                        color = (255, 165, 0)
+                    pygame.draw.rect(self.display, color, ((j * self.cell_edge, i * self.cell_edge), (self.cell_edge, self.cell_edge)), 1)
+
+        if len(state) > 0:
+            pygame.draw.rect(self.display, (255, 0, 0), ((state[1] * self.cell_edge, state[0] * self.cell_edge), (self.cell_edge, self.cell_edge)), 1)
+
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.loop = False
+                self.close_window()
+                return "stop"
+            elif (event.type == pygame.KEYDOWN) and (event.key == pygame.K_SPACE):
+                self.loop = False
+
+        return None
+
+    def visualize_racetrack(self, state=np.array([])):
+        if not self.window:
+            self.setup()
+        self.loop = True
+        while(self.loop):
+            ret = self.draw(state)
+            if ret is not None:
+                return ret
 
 # generate racetrack
 RaceTrackObj = RaceTrack()
