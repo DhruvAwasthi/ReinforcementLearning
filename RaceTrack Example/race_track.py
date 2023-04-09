@@ -5,6 +5,19 @@ from matplotlib import colors
 import numpy as np
 
 
+actions = [
+    (-1, -1),
+    (-1, 0),
+    (-1, 1),
+    (0, -1),
+    (0, 0),
+    (0, 1),
+    (1, -1),
+    (1, 0),
+    (1, 1),
+]
+
+
 class RaceTrack:
     def __init__(self):
         self.racetrack = np.full((26, 13), -1)
@@ -69,16 +82,6 @@ class RaceTrack:
         plt.yticks([])
         plt.show()
         return None
-
-
-# generate racetrack
-RaceTrackObj = RaceTrack()
-race_track = RaceTrackObj.generate_racetrack()
-print(race_track)
-
-
-# visualize racetrack
-RaceTrackObj.visualize_racetrack()
 
 
 class Env:
@@ -164,3 +167,40 @@ class Env:
         self.step_count += 1
 
         return reward, new_state
+
+
+class Agent:
+    def __int__(self):
+        pass
+
+    def get_indices_of_valid_actions(self, velocity):
+        indices_of_valid_acts = list()
+        for idx, possible_action in enumerate(actions):
+            new_velocity = np.add(velocity, possible_action)
+            if (new_velocity[0] <= 5 and new_velocity[0] >=0) and (new_velocity[1] <=5 and new_velocity[1] >= 0):
+                indices_of_valid_acts.append(idx)
+        indices_of_valid_acts = np.array(indices_of_valid_acts)
+        return indices_of_valid_acts
+
+    def map_to_one_dimension(self, action):
+        for idx, possible_action in enumerate(actions):
+            if list(action) == list(possible_action):
+                return idx
+
+    def map_to_two_dimension(self, idx_of_action):
+        return actions[idx_of_action]
+
+    def get_action(self, state, policy):
+        """Returns next action given the state following a policy.
+        """
+        return self.map_to_two_dimension(policy(state, self.get_indices_of_valid_actions(state[2:4])))
+
+
+# generate racetrack
+RaceTrackObj = RaceTrack()
+race_track = RaceTrackObj.generate_racetrack()
+print(race_track)
+
+
+# visualize racetrack
+RaceTrackObj.visualize_racetrack()
