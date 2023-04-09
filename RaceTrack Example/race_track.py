@@ -95,6 +95,12 @@ class Env:
             "R": [None]
         }
 
+    def set_zero(self, numpy_array):
+        """Set all the elements of the numpy array to zero.
+        """
+        numpy_array[:] = 0
+        return numpy_array
+
     def select_random_start_position(self):
         position_x = 24
         random_position_y = np.random.choice([7, 8, 9])
