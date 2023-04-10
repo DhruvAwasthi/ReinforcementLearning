@@ -83,6 +83,35 @@ class RaceTrack:
         return None
 
 
+# generate racetrack
+RaceTrackObj = RaceTrack()
+race_track = RaceTrackObj.generate_racetrack()
+print(race_track)
+
+
+# visualize racetrack
+RaceTrackObj.visualize_racetrack()
+
+
+class Data:
+    def __int__(self):
+        self.racetrack = race_track
+        self.start_line = np.array([[24, 7], [24, 8], [24, 9]])
+        self.finish_line = np.array([[7, 12], [8, 12], [9, 12], [10, 12], [11, 12]])
+        self.Q_vals = np.load("data/Q_vals.npy")
+        self.C_vals = np.load("data/C_vals.npy")
+        self.policy = np.load("data/policy.npy")
+        self.rewards = list(np.load("data/rewards.npy"))
+        self.epsilon = 0.1
+        self.gamma = 1
+        self.episode = {
+            "S": [],
+            "A": [],
+            "probs": [],
+            "R": [None]
+        }
+
+
 class Env:
     def __init__(self, data):
         self.data = data
@@ -149,12 +178,11 @@ class Env:
         reward = -1
         self.data.episode["A"].append(action)
         if self.is_finish_line_crossed(state, action):
-            reward = 1
             new_state = self.get_new_state(state, action)
             self.data.episode["R"].append(reward)
             self.data.episode["S"].append(new_state)
             self.step_count += 1
-            return reward, new_state
+            return None, new_state
 
         elif self.is_out_of_track(state, action):
             new_state = self.start()
@@ -261,15 +289,6 @@ class Visualizer:
                 return ret
 
 
-# generate racetrack
-RaceTrackObj = RaceTrack()
-race_track = RaceTrackObj.generate_racetrack()
-print(race_track)
-
-
-# visualize racetrack
-RaceTrackObj.visualize_racetrack()
-
 # initialize environment
 env = Env()
 # initialize agent
@@ -331,7 +350,7 @@ class OffPolicyMonteCarloControl:
         state = env.start()
         self.data.episode["S"].append(state)
         rew = -1
-        while rew != 1:
+        while rew is not None:
             action = agent.get_action(state, self.generate_target_policy_action)
             rew, state = env.step(state, action)
 
@@ -349,7 +368,7 @@ class OffPolicyMonteCarloControl:
         state= env.start()
         self.data.episode["S"].append(state)
         rew = - 1
-        while rew != 1:
+        while rew is not None:
             action = agent.get_action(state, self.generate_behavioural_policy_action)
             rew, state = env.step(state, action)
 
