@@ -86,15 +86,15 @@ class RaceTrack:
 # generate racetrack
 RaceTrackObj = RaceTrack()
 race_track = RaceTrackObj.generate_racetrack()
-print(race_track)
+# print(race_track)
 
 
 # visualize racetrack
-RaceTrackObj.visualize_racetrack()
+# RaceTrackObj.visualize_racetrack()
 
 
 class Data:
-    def __int__(self):
+    def __init__(self):
         self.racetrack = race_track
         self.start_line = np.array([[24, 7], [24, 8], [24, 9]])
         self.finish_line = np.array([[7, 12], [8, 12], [9, 12], [10, 12], [11, 12]])
@@ -206,7 +206,7 @@ env = Env(data)
 
 
 class Agent:
-    def __int__(self):
+    def __init__(self):
         pass
 
     def get_indices_of_valid_actions(self, velocity):
@@ -240,12 +240,12 @@ class Visualizer:
     """The visualizer takes the state of the system and creates apygame window
     to visualize the current location of the agent on top of the racetrack.
     """
-    def __int__(self, data):
+    def __init__(self, data):
         self.data = data
         self.window = False
-        self.cell_edge = 9
-        self.width = 26 * self.cell_edge
-        self.height = 13 * self.cell_edge
+        self.cell_edge = 30
+        self.width = 40 * self.cell_edge
+        self.height = 40 * self.cell_edge
 
     def create_window(self):
         """Creates window and assigns self.display variable
@@ -417,3 +417,14 @@ class OffPolicyMonteCarloControl:
 
 # instantiate off policy monte carlo control
 mcc = OffPolicyMonteCarloControl(data)
+vis.visualize_racetrack()
+
+for i in range(100):
+    print("Episode:", i + 1)
+    mcc.control(env, agent)
+    if i % 10 == 9:
+        mcc.evaluate_target_policy()
+
+    if i % 100 == 99:
+        mcc.save_your_work()
+        mcc.plot_rewards()
