@@ -112,6 +112,10 @@ class Data:
         }
 
 
+# instantiate data
+data = Data()
+
+
 class Env:
     def __init__(self, data):
         self.data = data
@@ -197,6 +201,10 @@ class Env:
         return reward, new_state
 
 
+# instantiate environment
+env = Env(data)
+
+
 class Agent:
     def __int__(self):
         pass
@@ -222,6 +230,10 @@ class Agent:
         """Returns next action given the state following a policy.
         """
         return self.map_to_two_dimension(policy(state, self.get_indices_of_valid_actions(state[2:4])))
+
+
+# instantiate agent
+agent = Agent()
 
 
 class Visualizer:
@@ -289,10 +301,8 @@ class Visualizer:
                 return ret
 
 
-# initialize environment
-env = Env()
-# initialize agent
-agent = Agent()
+# instantiate visualizer
+vis = Visualizer(data)
 
 
 class OffPolicyMonteCarloControl:
@@ -404,3 +414,6 @@ class OffPolicyMonteCarloControl:
         plt.savefig("Reward_Graph.png")
         plt.close()
 
+
+# instantiate off policy monte carlo control
+mcc = OffPolicyMonteCarloControl(data)
