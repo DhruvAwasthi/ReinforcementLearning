@@ -79,6 +79,7 @@ class RaceTrack:
         plt.pcolor(self.racetrack[::-1], cmap=cmap, edgecolors='k', linewidths=3)
         plt.xticks([])
         plt.yticks([])
+        plt.savefig("Racetrack.png")
         plt.show()
         return None
 
@@ -431,7 +432,7 @@ class OffPolicyMonteCarloControl:
         plt.title("Plot of Reward vs Episode Number", size=20)
         plt.xticks(size=20)
         plt.yticks(size=20)
-        plt.savefig("Reward_Graph.png")
+        plt.savefig("Rewards_Plot.png")
         plt.close()
 
 
