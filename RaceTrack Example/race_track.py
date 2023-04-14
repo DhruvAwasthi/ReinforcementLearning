@@ -90,7 +90,7 @@ race_track = RaceTrackObj.generate_racetrack()
 
 
 # visualize racetrack
-# RaceTrackObj.visualize_racetrack()
+RaceTrackObj.visualize_racetrack()
 
 
 class Data:
@@ -163,7 +163,7 @@ class Env:
         Finish line is crossed when car reaches any of the a, b, c, d, e grid cells.
         """
         new_state = self.get_new_state(state, action)
-        if (new_state[1] == 12) and (new_state[0] in [7, 8, 9, 10, 11]):
+        if (new_state[1] >= 12) and (new_state[0] in [7, 8, 9, 10, 11]):
             return True
         else:
             return False
@@ -172,8 +172,12 @@ class Env:
         """
         Returns True if the car intersects any of the red boundary, False otherwise.
         """
+        # print(f"State: {state}, Action: {action}", end=" ")
         new_state = self.get_new_state(state, action)
-        if race_track[new_state[0], new_state[1]] == -1:
+        # print(f"New State: {new_state}")
+        if new_state[0] < 0 or new_state[0] > 25 or new_state[1] < 0 or new_state[1] > 12:
+            return True
+        elif race_track[new_state[0], new_state[1]] == -1:
             return True
         else:
             return False
@@ -307,7 +311,7 @@ vis = Visualizer(data)
 
 class OffPolicyMonteCarloControl:
     def __init__(self, data):
-        """Intitialize for all states, actions, etc."""
+        """Initialize for all states, actions, etc."""
         self.data = data
         for i in range(26):
             for j in range(13):
@@ -417,7 +421,8 @@ class OffPolicyMonteCarloControl:
 
 # instantiate off policy monte carlo control
 mcc = OffPolicyMonteCarloControl(data)
-vis.visualize_racetrack()
+# visualize racetrack using pygame
+# vis.visualize_racetrack()
 
 for i in range(100):
     print("Episode:", i + 1)
