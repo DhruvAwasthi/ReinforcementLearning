@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import pygame
 from matplotlib import colors
 
+from utility import generate_matrices
+
 # number of episodes for which to run the code
 nut_of_episodes_to_run = 100
 
@@ -17,7 +19,7 @@ logging.basicConfig(level=logging.INFO,
                                               datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".log"))
 logger = logging.getLogger(__name__)
 
-
+# define possible actions
 actions = [
     (-1, -1),
     (-1, 0),
@@ -107,6 +109,9 @@ logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Viewing race track:
 
 # visualize racetrack
 RaceTrackObj.visualize_racetrack()
+
+# generate initialization matrices for Q_Vals, C_vals, policy, and rewards
+generate_matrices()
 
 
 class Data:
