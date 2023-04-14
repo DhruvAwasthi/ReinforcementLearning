@@ -3,13 +3,13 @@ import numpy as np
 
 def generate_Q():
     Q_vals = (np.random.rand(26, 13, 6, 6, 9) * 400) - 500
-    np.save("data/Q_vals.npy", Q_vals)
+    np.save("data/initialisation/Q_vals.npy", Q_vals)
     return Q_vals
 
 
 def generate_C():
     C_vals = np.zeros((26, 13, 6, 6, 9), dtype="float64")
-    np.save("data/C_vals.npy", C_vals)
+    np.save("data/initialisation/C_vals.npy", C_vals)
     return C_vals
 
 
@@ -20,13 +20,13 @@ def generate_policy(Q_vals):
             for h in range(6):
                 for v in range(6):
                     policy[i, j, h, v] = np.argmax(Q_vals[i, j, h, v, :])
-    np.save("data/policy.npy", policy)
+    np.save("data/initialisation/policy.npy", policy)
     return policy
 
 
 def generate_rewards():
     rewards = np.array([])
-    np.save("data/rewards.npy", rewards)
+    np.save("data/initialisation/rewards.npy", rewards)
     return rewards
 
 

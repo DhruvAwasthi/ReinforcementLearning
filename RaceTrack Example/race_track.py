@@ -98,10 +98,10 @@ class Data:
         self.racetrack = race_track
         self.start_line = np.array([[24, 7], [24, 8], [24, 9]])
         self.finish_line = np.array([[7, 12], [8, 12], [9, 12], [10, 12], [11, 12]])
-        self.Q_vals = np.load("data/Q_vals.npy")
-        self.C_vals = np.load("data/C_vals.npy")
-        self.policy = np.load("data/policy.npy")
-        self.rewards = list(np.load("data/rewards.npy"))
+        self.Q_vals = np.load("data/initialisation/Q_vals.npy")
+        self.C_vals = np.load("data/initialisation/C_vals.npy")
+        self.policy = np.load("data/initialisation/policy.npy")
+        self.rewards = list(np.load("data/initialisation/rewards.npy"))
         self.epsilon = 0.1
         self.gamma = 1
         self.episode = {
@@ -110,6 +110,22 @@ class Data:
             "probs": [],
             "R": [None]
         }
+
+    def save_Q_vals(self):
+        np.save("data/saved/Q_vals.npy", self.Q_vals)
+        return None
+
+    def save_C_vals(self):
+        np.save("data/saved/C_vals.npy", self.C_vals)
+        return None
+
+    def save_policy(self):
+        np.save("data/saved/policy.npy", self.policy)
+        return None
+
+    def save_rewards(self):
+        np.save("data/saved/rewards.npy", self.rewards)
+        return None
 
 
 # instantiate data
@@ -431,5 +447,7 @@ for i in range(100):
         mcc.evaluate_target_policy()
 
     if i % 100 == 99:
+        print(f"\nSaving work after {i + 1}")
         mcc.save_your_work()
+        print(f"Plotting rewards after {i + 1}\n")
         mcc.plot_rewards()
