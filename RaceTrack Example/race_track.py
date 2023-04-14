@@ -1,7 +1,21 @@
+import os
+import logging
+from datetime import datetime
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pygame
 from matplotlib import colors
+
+# number of episodes for which to run the code
+nut_of_episodes_to_run = 100
+
+# define logger
+LOG_DIR = "log/"
+logging.basicConfig(level=logging.INFO,
+                        filename=os.path.join(LOG_DIR,
+                                              datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".log"))
+logger = logging.getLogger(__name__)
 
 
 actions = [
@@ -79,7 +93,7 @@ class RaceTrack:
         plt.pcolor(self.racetrack[::-1], cmap=cmap, edgecolors='k', linewidths=3)
         plt.xticks([])
         plt.yticks([])
-        plt.savefig("Racetrack.png")
+        plt.savefig("Race_Track.png")
         plt.show()
         return None
 
@@ -87,7 +101,8 @@ class RaceTrack:
 # generate racetrack
 RaceTrackObj = RaceTrack()
 race_track = RaceTrackObj.generate_racetrack()
-# print(race_track)
+
+logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Viewing race track: \n{race_track}")
 
 
 # visualize racetrack
@@ -189,9 +204,8 @@ class Env:
         """
         Returns True if the car intersects any of the red boundary, False otherwise.
         """
-        # print(f"State: {state}, Action: {action}", end=" ")
         new_state = self.get_new_state(state, action)
-        # print(f"New State: {new_state}")
+
         if new_state[0] < 0 or new_state[0] > 25 or new_state[1] < 0 or new_state[1] > 12:
             return True
         elif race_track[new_state[0], new_state[1]] == -1:
@@ -441,14 +455,14 @@ mcc = OffPolicyMonteCarloControl(data)
 # visualize racetrack using pygame
 # vis.visualize_racetrack()
 
-for i in range(100):
-    print("Episode:", i + 1)
+for i in range(nut_of_episodes_to_run):
+    logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Episode: {i + 1}")
     mcc.control(env, agent)
     if i % 10 == 9:
         mcc.evaluate_target_policy()
 
     if i % 100 == 99:
-        print(f"\nSaving work after {i + 1}")
+        logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Saving work after: {i + 1}")
         mcc.save_your_work()
-        print(f"Plotting rewards after {i + 1}\n")
+        logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Plotting rewards after: { i + 1}")
         mcc.plot_rewards()
