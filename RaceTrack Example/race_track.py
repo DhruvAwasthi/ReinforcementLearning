@@ -10,7 +10,9 @@ from matplotlib import colors
 from utility import generate_matrices
 
 # number of episodes for which to run the code
-nut_of_episodes_to_run = 100
+num_of_episodes_to_run_on_policy = 50000
+# number of episodes for which to run the code
+num_of_episodes_to_run_off_policy = 50000
 
 # define logger
 LOG_DIR = "log/"
@@ -451,23 +453,27 @@ class OffPolicyMonteCarloControl:
         plt.title("Plot of Reward vs Episode Number", size=20)
         plt.xticks(size=20)
         plt.yticks(size=20)
-        plt.savefig("Rewards_Plot.png")
+        plt.savefig("Rewards_Plot_Off_Policy.png")
         plt.close()
 
 
-# instantiate off policy monte carlo control
-mcc = OffPolicyMonteCarloControl(data)
-# visualize racetrack using pygame
-# vis.visualize_racetrack()
+def run_off_policy_monte_carlo():
+    # instantiate off policy monte carlo control
+    mcc = OffPolicyMonteCarloControl(data)
+    # visualize racetrack using pygame
+    # vis.visualize_racetrack()
 
-for i in range(nut_of_episodes_to_run):
-    logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Episode: {i + 1}")
-    mcc.control(env, agent)
-    if i % 10 == 9:
-        mcc.evaluate_target_policy()
+    for i in range(num_of_episodes_to_run_off_policy):
+        logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Episode: {i + 1}")
+        mcc.control(env, agent)
+        if i % 10 == 9:
+            mcc.evaluate_target_policy()
 
-    if i % 100 == 99:
-        logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Saving work after: {i + 1}")
-        mcc.save_your_work()
-        logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Plotting rewards after: { i + 1}")
-        mcc.plot_rewards()
+        if i % 100 == 99:
+            logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Saving work after: {i + 1}")
+            mcc.save_your_work()
+            logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Plotting rewards after: { i + 1}")
+            mcc.plot_rewards()
+
+
+run_off_policy_monte_carlo()
