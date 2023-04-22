@@ -9,6 +9,8 @@ from matplotlib import colors
 
 from utility import generate_matrices
 
+
+save_results_dir = "run_results"
 # number of episodes for which to run the code
 num_of_episodes_to_run_on_policy = 50000
 # number of episodes for which to run the code
@@ -97,7 +99,7 @@ class RaceTrack:
         plt.pcolor(self.racetrack[::-1], cmap=cmap, edgecolors='k', linewidths=3)
         plt.xticks([])
         plt.yticks([])
-        plt.savefig("Race_Track.png")
+        plt.savefig(os.path.join(save_results_dir, "Race_Track.png"))
         plt.show()
         return None
 
@@ -453,7 +455,7 @@ class OffPolicyMonteCarloControl:
         plt.title("Plot of Reward vs Episode Number", size=20)
         plt.xticks(size=20)
         plt.yticks(size=20)
-        plt.savefig("Rewards_Plot_Off_Policy.png")
+        plt.savefig(os.path.join(save_results_dir, "Rewards_Plot_Off_Policy.png"))
         plt.close()
 
 
@@ -474,6 +476,3 @@ def run_off_policy_monte_carlo():
             mcc.save_your_work()
             logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Plotting rewards after: { i + 1}")
             mcc.plot_rewards()
-
-
-run_off_policy_monte_carlo()

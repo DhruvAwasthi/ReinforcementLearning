@@ -2,5 +2,6 @@
 venv/
 RaceTrack Example/.ipynb_checkpoints/
 RaceTrack Example/.~lock.Race_track.xlsx#
+RaceTrack Example/log/
 *.npy
 __pycache__
