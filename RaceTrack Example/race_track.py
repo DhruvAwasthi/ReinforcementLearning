@@ -7,17 +7,18 @@ import matplotlib.pyplot as plt
 import pygame
 from matplotlib import colors
 
-from utility import generate_matrices
+from utility import create_dir, generate_matrices
 
-
+# define directories
 save_results_dir = "run_results"
+LOG_DIR = "log/"
+create_dir(save_results_dir)
+create_dir(LOG_DIR)
 # number of episodes for which to run the code
 num_of_episodes_to_run_on_policy = 50000
 # number of episodes for which to run the code
 num_of_episodes_to_run_off_policy = 50000
 
-# define logger
-LOG_DIR = "log/"
 logging.basicConfig(level=logging.INFO,
                         filename=os.path.join(LOG_DIR,
                                               datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".log"))
