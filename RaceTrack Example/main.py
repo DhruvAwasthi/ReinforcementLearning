@@ -1,6 +1,21 @@
 import argparse
+import logging
+import os
+from datetime import datetime
 
+from config import LOG_DIR, SAVE_RESULTS_DIR
 from race_track import run_off_policy_monte_carlo
+from utility import create_dir
+
+
+# create directories
+create_dir(SAVE_RESULTS_DIR)
+create_dir(LOG_DIR)
+
+logging.basicConfig(level=logging.INFO,
+                        filename=os.path.join(LOG_DIR,
+                                              datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".log"))
+logger = logging.getLogger(__name__)
 
 
 parser = argparse.ArgumentParser(
@@ -32,7 +47,9 @@ if args.run_on_policy:
 
 # run off policy monte carlo
 elif args.run_off_policy:
+    logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} running off policy monte carlo")
     run_off_policy_monte_carlo()
+    logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} successfully executed off policy monte carlo")
 
 # run both on and off policy monte carlo
 elif args.run_on_and_off_policy:

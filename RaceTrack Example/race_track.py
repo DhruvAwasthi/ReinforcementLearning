@@ -7,22 +7,19 @@ import matplotlib.pyplot as plt
 import pygame
 from matplotlib import colors
 
-from utility import create_dir, generate_matrices
+from config import SAVE_RESULTS_DIR, NUM_OF_EPISODES_TO_RUN_ON_POLICY, NUM_OF_EPISODES_TO_RUN_OFF_POLICY
+from utility import generate_matrices
 
-# define directories
-save_results_dir = "run_results"
-LOG_DIR = "log/"
-create_dir(save_results_dir)
-create_dir(LOG_DIR)
-# number of episodes for which to run the code
-num_of_episodes_to_run_on_policy = 50000
-# number of episodes for which to run the code
-num_of_episodes_to_run_off_policy = 50000
 
-logging.basicConfig(level=logging.INFO,
-                        filename=os.path.join(LOG_DIR,
-                                              datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".log"))
+# get logger
 logger = logging.getLogger(__name__)
+
+# define global variables
+race_track = None
+data = None
+env = None
+agent = None
+vis = None
 
 # define possible actions
 actions = [
@@ -100,27 +97,26 @@ class RaceTrack:
         plt.pcolor(self.racetrack[::-1], cmap=cmap, edgecolors='k', linewidths=3)
         plt.xticks([])
         plt.yticks([])
-        plt.savefig(os.path.join(save_results_dir, "Race_Track.png"))
+        plt.savefig(os.path.join(SAVE_RESULTS_DIR, "Race_Track.png"))
         plt.show()
         return None
 
 
-# generate racetrack
-RaceTrackObj = RaceTrack()
-race_track = RaceTrackObj.generate_racetrack()
-
-logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Viewing race track: \n{race_track}")
-
-
-# visualize racetrack
-RaceTrackObj.visualize_racetrack()
-
-# generate initialization matrices for Q_Vals, C_vals, policy, and rewards
-generate_matrices()
+def generate_racetrack():
+    global race_track
+    logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} generating race track")
+    # generate racetrack
+    RaceTrackObj = RaceTrack()
+    race_track = RaceTrackObj.generate_racetrack()
+    logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} race track generated successfully")
+    logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} race track: \n{race_track}")
+    # visualize racetrack
+    RaceTrackObj.visualize_racetrack()
+    return None
 
 
 class Data:
-    def __init__(self):
+    def __init__(self, race_track):
         self.racetrack = race_track
         self.start_line = np.array([[24, 7], [24, 8], [24, 9]])
         self.finish_line = np.array([[7, 12], [8, 12], [9, 12], [10, 12], [11, 12]])
@@ -152,10 +148,6 @@ class Data:
     def save_rewards(self):
         np.save("data/saved/rewards.npy", self.rewards)
         return None
-
-
-# instantiate data
-data = Data()
 
 
 class Env:
@@ -246,10 +238,6 @@ class Env:
         return reward, new_state
 
 
-# instantiate environment
-env = Env(data)
-
-
 class Agent:
     def __init__(self):
         pass
@@ -275,10 +263,6 @@ class Agent:
         """Returns next action given the state following a policy.
         """
         return self.map_to_two_dimension(policy(state, self.get_indices_of_valid_actions(state[2:4])))
-
-
-# instantiate agent
-agent = Agent()
 
 
 class Visualizer:
@@ -344,10 +328,6 @@ class Visualizer:
             ret = self.draw(state)
             if ret is not None:
                 return ret
-
-
-# instantiate visualizer
-vis = Visualizer(data)
 
 
 class OffPolicyMonteCarloControl:
@@ -456,17 +436,37 @@ class OffPolicyMonteCarloControl:
         plt.title("Plot of Reward vs Episode Number", size=20)
         plt.xticks(size=20)
         plt.yticks(size=20)
-        plt.savefig(os.path.join(save_results_dir, "Rewards_Plot_Off_Policy.png"))
+        plt.savefig(os.path.join(SAVE_RESULTS_DIR, "Rewards_Plot_Off_Policy.png"))
         plt.close()
 
 
+def setup_run():
+    global data, env, agent, vis
+    # generate racetrack
+    generate_racetrack()
+    # generate initialization matrices for Q_Vals, C_vals, policy, and rewards
+    generate_matrices()
+    # instantiate data
+    data = Data(race_track)
+    # instantiate environment
+    env = Env(data)
+    # instantiate agent
+    agent = Agent()
+    # instantiate visualizer
+    vis = Visualizer(data)
+    return None
+
+
 def run_off_policy_monte_carlo():
+    global env, agent
+    # setup run
+    setup_run()
     # instantiate off policy monte carlo control
     mcc = OffPolicyMonteCarloControl(data)
     # visualize racetrack using pygame
     # vis.visualize_racetrack()
 
-    for i in range(num_of_episodes_to_run_off_policy):
+    for i in range(NUM_OF_EPISODES_TO_RUN_OFF_POLICY):
         logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Episode: {i + 1}")
         mcc.control(env, agent)
         if i % 10 == 9:
