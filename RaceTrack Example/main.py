@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 
 from config import LOG_DIR, SAVE_RESULTS_DIR
-from race_track import run_off_policy_monte_carlo
+from race_track import run_off_policy_monte_carlo, run_on_policy_monte_carlo
 from utility import create_dir
 
 
@@ -43,7 +43,9 @@ args = parser.parse_args()
 
 # run on policy monte carlo
 if args.run_on_policy:
-    pass
+    logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} running on policy monte carlo")
+    run_on_policy_monte_carlo()
+    logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} successfully executed on policy monte carlo")
 
 # run off policy monte carlo
 elif args.run_off_policy:
@@ -53,4 +55,10 @@ elif args.run_off_policy:
 
 # run both on and off policy monte carlo
 elif args.run_on_and_off_policy:
-    pass
+    logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} running on policy monte carlo")
+    run_on_policy_monte_carlo()
+    logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} successfully executed on policy monte carlo")
+
+    logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} running off policy monte carlo")
+    run_off_policy_monte_carlo()
+    logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} successfully executed off policy monte carlo")

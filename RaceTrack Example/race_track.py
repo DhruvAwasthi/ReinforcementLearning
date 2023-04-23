@@ -458,7 +458,7 @@ def setup_run():
 
 
 def run_off_policy_monte_carlo():
-    global env, agent
+    global env, agent, vis
     # setup run
     setup_run()
     # instantiate off policy monte carlo control
@@ -477,3 +477,19 @@ def run_off_policy_monte_carlo():
             mcc.save_your_work()
             logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Plotting rewards after: { i + 1}")
             mcc.plot_rewards()
+
+
+def run_on_policy_monte_carlo():
+
+    for i in range(NUM_OF_EPISODES_TO_RUN_ON_POLICY):
+        logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Episode: {i + 1}")
+        # mcc.control(env, agent)
+        if i % 10 == 9:
+            # mcc.evaluate_target_policy()
+            pass
+
+        if i % 100 == 99:
+            logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Saving work after: {i + 1}")
+            # mcc.save_your_work()
+            logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Plotting rewards after: { i + 1}")
+            # mcc.plot_rewards()
