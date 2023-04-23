@@ -133,20 +133,32 @@ class Data:
             "R": [None]
         }
 
-    def save_Q_vals(self):
-        np.save("data/saved/Q_vals.npy", self.Q_vals)
+    def save_Q_vals(self, on_or_off="off"):
+        if on_or_off == "off":
+            np.save("data/saved/off/Q_vals.npy", self.Q_vals)
+        else:
+            np.save("data/saved/on/Q_vals.npy", self.Q_vals)
         return None
 
-    def save_C_vals(self):
-        np.save("data/saved/C_vals.npy", self.C_vals)
+    def save_C_vals(self, on_or_off="off"):
+        if on_or_off == "off":
+            np.save("data/saved/off/C_vals.npy", self.C_vals)
+        else:
+            np.save("data/saved/on/C_vals.npy", self.Q_vals)
         return None
 
-    def save_policy(self):
-        np.save("data/saved/policy.npy", self.policy)
+    def save_policy(self, on_or_off="off"):
+        if on_or_off == "off":
+            np.save("data/saved/off/policy.npy", self.policy)
+        else:
+            np.save("data/saved/on/policy.npy", self.Q_vals)
         return None
 
-    def save_rewards(self):
-        np.save("data/saved/rewards.npy", self.rewards)
+    def save_rewards(self, on_or_off="off"):
+        if on_or_off == "off":
+            np.save("data/saved/off/rewards.npy", self.rewards)
+        else:
+            np.save("data/saved/on/rewards.npy", self.Q_vals)
         return None
 
 
@@ -391,11 +403,11 @@ class OffPolicyMonteCarloControl:
 
         self.data.rewards.append(sum(self.data.episode["R"][1:]))
 
-    def save_your_work(self):
-        self.data.save_Q_vals()
-        self.data.save_C_vals()
-        self.data.save_policy()
-        self.data.save_rewards()
+    def save_your_work(self, on_or_off="off"):
+        self.data.save_Q_vals(on_or_off)
+        self.data.save_C_vals(on_or_off)
+        self.data.save_policy(on_or_off)
+        self.data.save_rewards(on_or_off)
 
     def control(self, env, agent):
         """Performs MC control using episode list"""
@@ -440,6 +452,36 @@ class OffPolicyMonteCarloControl:
         plt.close()
 
 
+class OnPolicyMonteCarloControl:
+    def __init__(self, data):
+        """Initialize for all states, actions, etc."""
+        self.data = data
+
+    def evaluate_target_policy(self):
+        pass
+
+    def save_your_work(self, on_or_off="on"):
+        self.data.save_Q_vals(on_or_off)
+        self.data.save_C_vals(on_or_off)
+        self.data.save_policy(on_or_off)
+        self.data.save_rewards(on_or_off)
+
+    def control(self, env, agent):
+        pass
+
+    def plot_rewards(self):
+        ax, fig = plt.subplots(figsize=(30, 15))
+        x = np.arange(1, len(self.data.rewards) + 1)
+        plt.plot(x * 10, self.data.rewards, linewidth=0.5, color="#BB8FCE")
+        plt.xlabel("Episode number", size=20)
+        plt.ylabel("Reward", size=20)
+        plt.title("Plot of Reward vs Episode Number", size=20)
+        plt.xticks(size=20)
+        plt.yticks(size=20)
+        plt.savefig(os.path.join(SAVE_RESULTS_DIR, "Rewards_Plot_On_Policy.png"))
+        plt.close()
+
+
 def setup_run():
     global data, env, agent, vis
     # generate racetrack
@@ -458,38 +500,42 @@ def setup_run():
 
 
 def run_off_policy_monte_carlo():
-    global env, agent, vis
+    global env, agent, vis, data
     # setup run
     setup_run()
     # instantiate off policy monte carlo control
-    mcc = OffPolicyMonteCarloControl(data)
+    off_mcc = OffPolicyMonteCarloControl(data)
     # visualize racetrack using pygame
     # vis.visualize_racetrack()
 
     for i in range(NUM_OF_EPISODES_TO_RUN_OFF_POLICY):
         logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Episode: {i + 1}")
-        mcc.control(env, agent)
+        off_mcc.control(env, agent)
         if i % 10 == 9:
-            mcc.evaluate_target_policy()
+            off_mcc.evaluate_target_policy()
 
         if i % 100 == 99:
             logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Saving work after: {i + 1}")
-            mcc.save_your_work()
+            off_mcc.save_your_work(on_or_off="off")
             logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Plotting rewards after: { i + 1}")
-            mcc.plot_rewards()
+            off_mcc.plot_rewards()
 
 
 def run_on_policy_monte_carlo():
+    global env, agent, vis, data
+    # setup run
+    setup_run()
+    # instantiate on policy monte carlo control
+    on_mcc = OnPolicyMonteCarloControl(data)
 
     for i in range(NUM_OF_EPISODES_TO_RUN_ON_POLICY):
         logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Episode: {i + 1}")
-        # mcc.control(env, agent)
+        on_mcc.control(env, agent)
         if i % 10 == 9:
-            # mcc.evaluate_target_policy()
-            pass
+            on_mcc.evaluate_target_policy()
 
         if i % 100 == 99:
             logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Saving work after: {i + 1}")
-            # mcc.save_your_work()
+            on_mcc.save_your_work()
             logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Plotting rewards after: { i + 1}")
-            # mcc.plot_rewards()
+            on_mcc.plot_rewards()
