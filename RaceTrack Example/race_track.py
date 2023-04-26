@@ -120,10 +120,14 @@ class Data:
         self.racetrack = race_track
         self.start_line = np.array([[24, 7], [24, 8], [24, 9]])
         self.finish_line = np.array([[7, 12], [8, 12], [9, 12], [10, 12], [11, 12]])
-        self.Q_vals = np.load("data/initialisation/Q_vals.npy")
-        self.C_vals = np.load("data/initialisation/C_vals.npy")
-        self.policy = np.load("data/initialisation/policy.npy")
-        self.rewards = list(np.load("data/initialisation/rewards.npy"))
+        # self.Q_vals = np.load("data/initialisation/Q_vals.npy")
+        # self.C_vals = np.load("data/initialisation/C_vals.npy")
+        # self.policy = np.load("data/initialisation/policy.npy")
+        # self.rewards = list(np.load("data/initialisation/rewards.npy"))
+        self.Q_vals = np.load("data/saved/off/Q_vals.npy")
+        self.C_vals = np.load("data/saved/off/C_vals.npy")
+        self.policy = np.load("data/saved/off/policy.npy")
+        self.rewards = list(np.load("data/saved/off/rewards.npy"))
         self.epsilon = 0.1
         self.gamma = 1
         self.episode = {
@@ -481,9 +485,10 @@ class OnPolicyMonteCarloControl:
 
         self.data.episode["probs"].append(prob)
 
-    def generate_policy_action_for_episode_generation(self, state, possible_actions):
-        """Returns behavioural policy action which would be epsilon-greedy pi policy;
-        takes state and returns an action using this epsilon-greedy pi policy."""
+    def generate_policy_action(self, state, possible_actions):
+        """Returns target policy action; takes state and return an action
+        using this policy.
+        """
         if np.random.rand() > self.data.epsilon and self.data.policy[tuple(state)] in possible_actions:
             action = self.data.policy[tuple(state)]
         else:
@@ -493,26 +498,13 @@ class OnPolicyMonteCarloControl:
 
         return action
 
-    def generate_target_policy_action(self, state, possible_actions):
-        """Returns target policy action; takes state and return an action
-        using this policy.
-        """
-        if self.data.policy[tuple(state)] in possible_actions:
-            action = self.data.policy[tuple(state)]
-        else:
-            action = np.random.choice(possible_actions)
-
-        self.determine_probability_behaviour(state, action, possible_actions)
-
-        return action
-
-    def evaluate_target_policy(self):
+    def evaluate_policy(self):
         env.reset()
         state = env.start()
         self.data.episode["S"].append(state)
         rew = -1
         while rew is not None:
-            action = agent.get_action(state, self.generate_target_policy_action)
+            action = agent.get_action(state, self.generate_policy_action)
             rew, state = env.step(state, action)
 
         self.data.rewards.append(sum(self.data.episode["R"][1:]))
@@ -530,13 +522,12 @@ class OnPolicyMonteCarloControl:
         self.data.episode["S"].append(state)
         rew = -1
         while rew is not None:
-            action = agent.get_action(state, self.generate_policy_action_for_episode_generation)
+            action = agent.get_action(state, self.generate_policy_action)
             rew, state = env.step(state, action)
 
         G = 0
         T = env.step_count
-
-        print("length of episode", len(self.data.episode["S"]))
+        print(len(self.data.episode["S"]))
         for t in range(T - 1, -1, -1):
             G = data.gamma * G + self.data.episode["R"][t + 1]
             S_t = tuple(self.data.episode["S"][t])
@@ -545,12 +536,10 @@ class OnPolicyMonteCarloControl:
             S_list = list(S_t)
             S_list.append(A_t)
             SA = tuple(S_list)
-            print(t)
 
             for S, A in zip(self.data.episode["S"][:t-1], self.data.episode["A"][:t-1]):
 
                 if (list(S) == list(S_t)) and (agent.map_to_one_dimension(A) == A_t):
-                    print("breaking")
                     break
                 self.data.C_vals[SA] += G
                 self.data.count_sa_for_average[SA] += 1
@@ -626,9 +615,7 @@ def run_on_policy_monte_carlo():
 
     for i in range(NUM_OF_EPISODES_TO_RUN_ON_POLICY):
         logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Episode: {i + 1}")
-        print(f"Episode: {i + 1}")
         on_mcc.control(env, agent)
-        print("here")
         if i % 10 == 9:
             on_mcc.evaluate_target_policy()
 
