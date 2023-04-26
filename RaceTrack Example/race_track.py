@@ -1,7 +1,5 @@
 import logging
 import os
-import pickle
-import sys
 from datetime import datetime
 
 import numpy as np
@@ -222,7 +220,7 @@ class Env:
         """
         new_state = self.get_new_state(state, action)
 
-        if new_state[0] < 0 or new_state[0] > 25 or new_state[1] < 0 or new_state[1] > 12:
+        if new_state[0] < 6 or new_state[0] > 25 or new_state[1] < 6 or new_state[1] > 12:
             return True
         elif race_track[new_state[0], new_state[1]] == -1:
             return True
@@ -483,6 +481,18 @@ class OnPolicyMonteCarloControl:
 
         self.data.episode["probs"].append(prob)
 
+    def generate_policy_action_for_episode_generation(self, state, possible_actions):
+        """Returns behavioural policy action which would be epsilon-greedy pi policy;
+        takes state and returns an action using this epsilon-greedy pi policy."""
+        if np.random.rand() > self.data.epsilon and self.data.policy[tuple(state)] in possible_actions:
+            action = self.data.policy[tuple(state)]
+        else:
+            action = np.random.choice(possible_actions)
+
+        self.determine_probability_behaviour(state, action, possible_actions)
+
+        return action
+
     def generate_target_policy_action(self, state, possible_actions):
         """Returns target policy action; takes state and return an action
         using this policy.
@@ -520,13 +530,13 @@ class OnPolicyMonteCarloControl:
         self.data.episode["S"].append(state)
         rew = -1
         while rew is not None:
-            action = agent.get_action(state, self.generate_target_policy_action)
+            action = agent.get_action(state, self.generate_policy_action_for_episode_generation)
             rew, state = env.step(state, action)
 
         G = 0
         T = env.step_count
 
-        # pickle.dump(self.data.episode, open("episode.obj", "wb"))
+        print("length of episode", len(self.data.episode["S"]))
         for t in range(T - 1, -1, -1):
             G = data.gamma * G + self.data.episode["R"][t + 1]
             S_t = tuple(self.data.episode["S"][t])
@@ -535,11 +545,12 @@ class OnPolicyMonteCarloControl:
             S_list = list(S_t)
             S_list.append(A_t)
             SA = tuple(S_list)
+            print(t)
 
-            # while not ((list(self.data.episode["S"][-1]) == list(S_t)) and (agent.map_to_one_dimension(self.data.episode["A"][-1]) == A_t)):
-            for S, A in zip(self.data.episode["S"], self.data.episode["A"]):
+            for S, A in zip(self.data.episode["S"][:t-1], self.data.episode["A"][:t-1]):
 
                 if (list(S) == list(S_t)) and (agent.map_to_one_dimension(A) == A_t):
+                    print("breaking")
                     break
                 self.data.C_vals[SA] += G
                 self.data.count_sa_for_average[SA] += 1
@@ -623,6 +634,6 @@ def run_on_policy_monte_carlo():
 
         if i % 100 == 99:
             logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Saving work after: {i + 1}")
-            on_mcc.save_your_work()
+            on_mcc.save_your_work(on_or_off="on")
             logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Plotting rewards after: { i + 1}")
             on_mcc.plot_rewards()
