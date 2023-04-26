@@ -1,5 +1,7 @@
-import os
 import logging
+import os
+import pickle
+import sys
 from datetime import datetime
 
 import numpy as np
@@ -259,6 +261,8 @@ class Agent:
         for idx, possible_action in enumerate(actions):
             new_velocity = np.add(velocity, possible_action)
             if (new_velocity[0] <= 5 and new_velocity[0] >=0) and (new_velocity[1] <=5 and new_velocity[1] >= 0):
+                if new_velocity[0] == 0 and new_velocity[1] == 0:
+                    continue
                 indices_of_valid_acts.append(idx)
         indices_of_valid_acts = np.array(indices_of_valid_acts)
         return indices_of_valid_acts
@@ -410,11 +414,11 @@ class OffPolicyMonteCarloControl:
         self.data.save_rewards(on_or_off)
 
     def control(self, env, agent):
-        """Performs MC control using episode list"""
+        """Performs Off Policy MC control using episode list"""
         env.reset()
-        state= env.start()
+        state = env.start()
         self.data.episode["S"].append(state)
-        rew = - 1
+        rew = -1
         while rew is not None:
             action = agent.get_action(state, self.generate_behavioural_policy_action)
             rew, state = env.step(state, action)
@@ -435,6 +439,7 @@ class OffPolicyMonteCarloControl:
             self.data.C_vals[SA] += W
             self.data.Q_vals[SA] += (W * (G - self.data.Q_vals[SA])) / (self.data.C_vals[SA])
             self.data.policy[S_t] = np.argmax(self.data.Q_vals[S_t])
+
             if A_t != self.data.policy[S_t]:
                 break
             W /= self.data.episode["probs"][t]
@@ -456,9 +461,51 @@ class OnPolicyMonteCarloControl:
     def __init__(self, data):
         """Initialize for all states, actions, etc."""
         self.data = data
+        self.data.count_sa_for_average = np.zeros((26, 13, 6, 6, 9), dtype="float64")
+        for i in range(26):
+            for j in range(13):
+                if self.data.racetrack[i, j] != -1:
+                    for k in range(6):
+                        for l in range(6):
+                            self.data.policy[i, j, k, l] = np.argmax(self.data.Q_vals[i, j, k, l])
+
+    def determine_probability_behaviour(self, state, action, possible_actions):
+        best_action = self.data.policy[tuple(state)]
+        num_actions = len(possible_actions)
+
+        if best_action in possible_actions:
+            if action == best_action:
+                prob = 1 - self.data.epsilon + self.data.epsilon / num_actions
+            else:
+                prob = self.data.epsilon / num_actions
+        else:
+            prob = 1 / num_actions
+
+        self.data.episode["probs"].append(prob)
+
+    def generate_target_policy_action(self, state, possible_actions):
+        """Returns target policy action; takes state and return an action
+        using this policy.
+        """
+        if self.data.policy[tuple(state)] in possible_actions:
+            action = self.data.policy[tuple(state)]
+        else:
+            action = np.random.choice(possible_actions)
+
+        self.determine_probability_behaviour(state, action, possible_actions)
+
+        return action
 
     def evaluate_target_policy(self):
-        pass
+        env.reset()
+        state = env.start()
+        self.data.episode["S"].append(state)
+        rew = -1
+        while rew is not None:
+            action = agent.get_action(state, self.generate_target_policy_action)
+            rew, state = env.step(state, action)
+
+        self.data.rewards.append(sum(self.data.episode["R"][1:]))
 
     def save_your_work(self, on_or_off="on"):
         self.data.save_Q_vals(on_or_off)
@@ -467,7 +514,45 @@ class OnPolicyMonteCarloControl:
         self.data.save_rewards(on_or_off)
 
     def control(self, env, agent):
-        pass
+        """Performs On Policy MC control using episode list"""
+        env.reset()
+        state = env.start()
+        self.data.episode["S"].append(state)
+        rew = -1
+        while rew is not None:
+            action = agent.get_action(state, self.generate_target_policy_action)
+            rew, state = env.step(state, action)
+
+        G = 0
+        T = env.step_count
+
+        # pickle.dump(self.data.episode, open("episode.obj", "wb"))
+        for t in range(T - 1, -1, -1):
+            G = data.gamma * G + self.data.episode["R"][t + 1]
+            S_t = tuple(self.data.episode["S"][t])
+            A_t = agent.map_to_one_dimension(self.data.episode["A"][t])
+
+            S_list = list(S_t)
+            S_list.append(A_t)
+            SA = tuple(S_list)
+
+            # while not ((list(self.data.episode["S"][-1]) == list(S_t)) and (agent.map_to_one_dimension(self.data.episode["A"][-1]) == A_t)):
+            for S, A in zip(self.data.episode["S"], self.data.episode["A"]):
+
+                if (list(S) == list(S_t)) and (agent.map_to_one_dimension(A) == A_t):
+                    break
+                self.data.C_vals[SA] += G
+                self.data.count_sa_for_average[SA] += 1
+                self.data.Q_vals[SA] = self.data.C_vals[SA] / self.data.count_sa_for_average[SA]
+
+                best_action = np.argmax(self.data.Q_vals[S_t])
+                possible_actions = agent.get_indices_of_valid_actions(S_t[2:4])
+                num_actions = len(possible_actions)
+
+                if A_t == best_action:
+                    self.data.policy[S_t] = 1 - self.data.epsilon + self.data.epsilon / num_actions
+                else:
+                    self.data.policy[S_t] = self.data.epsilon / num_actions
 
     def plot_rewards(self):
         ax, fig = plt.subplots(figsize=(30, 15))
@@ -530,7 +615,9 @@ def run_on_policy_monte_carlo():
 
     for i in range(NUM_OF_EPISODES_TO_RUN_ON_POLICY):
         logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Episode: {i + 1}")
+        print(f"Episode: {i + 1}")
         on_mcc.control(env, agent)
+        print("here")
         if i % 10 == 9:
             on_mcc.evaluate_target_policy()
 
