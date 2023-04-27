@@ -55,10 +55,10 @@ elif args.run_off_policy:
 
 # run both on and off policy monte carlo
 elif args.run_on_and_off_policy:
-    logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} running on policy monte carlo")
-    run_on_policy_monte_carlo()
-    logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} successfully executed on policy monte carlo")
-
     logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} running off policy monte carlo")
     run_off_policy_monte_carlo()
     logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} successfully executed off policy monte carlo")
+
+    logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} running on policy monte carlo")
+    run_on_policy_monte_carlo()
+    logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} successfully executed on policy monte carlo")
