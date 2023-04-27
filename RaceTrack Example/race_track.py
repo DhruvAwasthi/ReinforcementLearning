@@ -120,14 +120,6 @@ class Data:
         self.racetrack = race_track
         self.start_line = np.array([[24, 7], [24, 8], [24, 9]])
         self.finish_line = np.array([[7, 12], [8, 12], [9, 12], [10, 12], [11, 12]])
-        # self.Q_vals = np.load("data/initialisation/Q_vals.npy")
-        # self.C_vals = np.load("data/initialisation/C_vals.npy")
-        # self.policy = np.load("data/initialisation/policy.npy")
-        # self.rewards = list(np.load("data/initialisation/rewards.npy"))
-        self.Q_vals = np.load("data/saved/off/Q_vals.npy")
-        self.C_vals = np.load("data/saved/off/C_vals.npy")
-        self.policy = np.load("data/saved/off/policy.npy")
-        self.rewards = list(np.load("data/saved/off/rewards.npy"))
         self.epsilon = 0.1
         self.gamma = 1
         self.episode = {
@@ -136,6 +128,10 @@ class Data:
             "probs": [],
             "R": [None]
         }
+        self.Q_vals = np.load("data/initialisation/Q_vals.npy")
+        self.C_vals = np.load("data/initialisation/C_vals.npy")
+        self.policy = np.load("data/initialisation/policy.npy")
+        self.rewards = list(np.load("data/initialisation/rewards.npy"))
 
     def save_Q_vals(self, on_or_off="off"):
         if on_or_off == "off":
@@ -486,7 +482,7 @@ class OnPolicyMonteCarloControl:
         self.data.episode["probs"].append(prob)
 
     def generate_policy_action(self, state, possible_actions):
-        """Returns target policy action; takes state and return an action
+        """Returns policy action; takes state and return an action
         using this policy.
         """
         if np.random.rand() > self.data.epsilon and self.data.policy[tuple(state)] in possible_actions:
@@ -527,7 +523,7 @@ class OnPolicyMonteCarloControl:
 
         G = 0
         T = env.step_count
-        print(len(self.data.episode["S"]))
+
         for t in range(T - 1, -1, -1):
             G = data.gamma * G + self.data.episode["R"][t + 1]
             S_t = tuple(self.data.episode["S"][t])
@@ -537,8 +533,7 @@ class OnPolicyMonteCarloControl:
             S_list.append(A_t)
             SA = tuple(S_list)
 
-            for S, A in zip(self.data.episode["S"][:t-1], self.data.episode["A"][:t-1]):
-
+            for S, A in zip(self.data.episode["S"][:t], self.data.episode["A"][:t]):
                 if (list(S) == list(S_t)) and (agent.map_to_one_dimension(A) == A_t):
                     break
                 self.data.C_vals[SA] += G
@@ -546,13 +541,14 @@ class OnPolicyMonteCarloControl:
                 self.data.Q_vals[SA] = self.data.C_vals[SA] / self.data.count_sa_for_average[SA]
 
                 best_action = np.argmax(self.data.Q_vals[S_t])
-                possible_actions = agent.get_indices_of_valid_actions(S_t[2:4])
+                possible_actions = [agent.map_to_one_dimension(action) for action in actions]
                 num_actions = len(possible_actions)
 
-                if A_t == best_action:
-                    self.data.policy[S_t] = 1 - self.data.epsilon + self.data.epsilon / num_actions
-                else:
-                    self.data.policy[S_t] = self.data.epsilon / num_actions
+                for possible_action in possible_actions:
+                    if possible_action == best_action:
+                        self.data.policy[S_t] = 1 - self.data.epsilon + self.data.epsilon / num_actions
+                    else:
+                        self.data.policy[S_t] = self.data.epsilon / num_actions
 
     def plot_rewards(self):
         ax, fig = plt.subplots(figsize=(30, 15))
@@ -567,14 +563,17 @@ class OnPolicyMonteCarloControl:
         plt.close()
 
 
-def setup_run():
+def setup_run(on_or_off="off"):
     global data, env, agent, vis
     # generate racetrack
     generate_racetrack()
     # generate initialization matrices for Q_Vals, C_vals, policy, and rewards
     generate_matrices()
     # instantiate data
-    data = Data(race_track)
+    if on_or_off == "off":
+        data = Data(race_track)
+    else:
+        data = Data(race_track)
     # instantiate environment
     env = Env(data)
     # instantiate agent
@@ -587,7 +586,7 @@ def setup_run():
 def run_off_policy_monte_carlo():
     global env, agent, vis, data
     # setup run
-    setup_run()
+    setup_run(on_or_off="off")
     # instantiate off policy monte carlo control
     off_mcc = OffPolicyMonteCarloControl(data)
     # visualize racetrack using pygame
@@ -609,7 +608,7 @@ def run_off_policy_monte_carlo():
 def run_on_policy_monte_carlo():
     global env, agent, vis, data
     # setup run
-    setup_run()
+    setup_run(on_or_off="on")
     # instantiate on policy monte carlo control
     on_mcc = OnPolicyMonteCarloControl(data)
 
@@ -617,7 +616,7 @@ def run_on_policy_monte_carlo():
         logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Episode: {i + 1}")
         on_mcc.control(env, agent)
         if i % 10 == 9:
-            on_mcc.evaluate_target_policy()
+            on_mcc.evaluate_policy()
 
         if i % 100 == 99:
             logger.info(f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')} Saving work after: {i + 1}")
