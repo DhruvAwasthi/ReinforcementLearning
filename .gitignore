@@ -5,3 +5,6 @@ RaceTrack Example/.~lock.Race_track.xlsx#
 RaceTrack Example/log/
 *.npy
 __pycache__
+Deep Reinforcement Learning for Dialogue Generation/.idea
+Deep Reinforcement Learning for Dialogue Generation/.DS_Store
+Deep Reinforcement Learning for Dialogue Generation/data/save
