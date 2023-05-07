@@ -1,3 +1,6 @@
+import logging
+from datetime import datetime
+
 import torch
 from torch.jit import script, trace
 import torch.nn as nn
@@ -17,6 +20,15 @@ from scipy.spatial import distance
 
 from seq2seq import *
 from dataloading import *
+
+
+# create logger
+LOG_DIR = "log/"
+os.makedirs(LOG_DIR, exist_ok=True)
+logging.basicConfig(level=logging.INFO,
+                        filename=os.path.join(LOG_DIR,
+                                              datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + "_run_chatbot.log"))
+logger = logging.getLogger(__name__)
 
 
 def evaluate(encoder, decoder, searcher, voc, sentence, max_length=15):
@@ -101,6 +113,7 @@ if __name__ == '__main__':
 
     # Set checkpoint to load from; set to None if starting from scratch
     load_file_name = "data/save/cb_model/train/2-2_500/1000_checkpoint.tar"
+    # load_file_name = "data/save/RL_model_seq/train/10000_checkpoint.tar"
     checkpoint_iter = 10000  # 4000
     # load_file_name = os.path.join(save_dir, model_name, corpus_name,
     #                            '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size),

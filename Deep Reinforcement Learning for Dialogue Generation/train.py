@@ -1,3 +1,6 @@
+import logging
+from datetime import datetime
+
 import torch
 from torch.jit import script, trace
 import torch.nn as nn
@@ -18,6 +21,14 @@ from scipy.spatial import distance
 from loss import mask_nll_loss
 from seq2seq import *
 from dataloading import *
+
+# create logger
+LOG_DIR = "log/"
+os.makedirs(LOG_DIR, exist_ok=True)
+logging.basicConfig(level=logging.INFO,
+                        filename=os.path.join(LOG_DIR,
+                                              datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + "_train_seq2seq.log"))
+logger = logging.getLogger(__name__)
 
 # Default word tokens
 PAD_token = 0  # Used for padding short sentences
@@ -114,6 +125,7 @@ def train_iters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, dec
 
     # Initializations
     print('Initializing ...')
+    logger.info('Initializing ...')
     start_iteration = 1
     print_loss = 0
     if checkpoint:
@@ -121,6 +133,7 @@ def train_iters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, dec
 
     # Training loop
     print("Training...")
+    logger.info("Training...")
     for iteration in range(start_iteration, n_iteration + 1):
         training_batch = training_batches[iteration - 1]
         # Extract fields from batch
@@ -135,6 +148,8 @@ def train_iters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, dec
         if iteration % print_every == 0:
             print_loss_avg = print_loss / print_every
             print("Iteration: {}; Percent complete: {:.1f}%; Average loss: {:.4f}".format(
+                iteration, iteration / n_iteration * 100, print_loss_avg))
+            logger.info("Iteration: {}; Percent complete: {:.1f}%; Average loss: {:.4f}".format(
                 iteration, iteration / n_iteration * 100, print_loss_avg))
             print_loss = 0
 
@@ -171,8 +186,10 @@ if __name__ == '__main__':
     voc, pairs = load_prepare_data(corpus, corpus_name, datafile, save_dir)
     # Print some pairs to validate
     print("\npairs:")
+    logger.info("\npairs:")
     for pair in pairs[:10]:
         print(pair)
+        logger.info(pair)
     pairs = trim_rare_words(voc, pairs, min_count=3)
 
     # Example for validation
@@ -186,6 +203,11 @@ if __name__ == '__main__':
     print("target_variable:", target_variable)
     print("mask:", mask)
     print("max_target_len:", max_target_len)
+    logger.info(f"input_variable: {input_variable}")
+    logger.info(f"lengths: {lengths}")
+    logger.info(f"target_variable: {target_variable}")
+    logger.info(f"mask: {mask}")
+    logger.info(f"max_target_len: {max_target_len}")
 
     # Configure models
     model_name = 'cb_model'
@@ -220,6 +242,7 @@ if __name__ == '__main__':
         voc.__dict__ = checkpoint['voc_dict']
 
     print('Building encoder and decoder ...')
+    logger.info('Building encoder and decoder ...')
     # Initialize word embeddings
     embedding = nn.Embedding(voc.num_words, hidden_size)
     if loadFilename:
@@ -235,6 +258,7 @@ if __name__ == '__main__':
     encoder = encoder.to(device)
     decoder = decoder.to(device)
     print('Models built and ready to go!')
+    logger.info('Models built and ready to go!')
 
     # Configure training/optimization
     clip = 50.0
@@ -251,6 +275,7 @@ if __name__ == '__main__':
 
     # Initialize optimizers
     print('Building optimizers ...')
+    logger.info('Building optimizers ...')
     encoder_optimizer = optim.Adam(encoder.parameters(), lr=learning_rate)
     decoder_optimizer = optim.Adam(
         decoder.parameters(), lr=learning_rate * decoder_learning_ratio)
@@ -271,6 +296,7 @@ if __name__ == '__main__':
 
     # Run training iterations
     print("Starting Training!")
+    logger.info("Starting Training!")
     train_iters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, decoder_optimizer,
                 embedding, encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size,
                 print_every, save_every, clip, corpus_name, loadFilename, hidden_size)

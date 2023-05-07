@@ -1,3 +1,6 @@
+import logging
+from datetime import datetime
+
 import torch
 from torch.jit import script, trace
 import torch.nn as nn
@@ -19,6 +22,15 @@ from loss import mask_nll_loss
 from seq2seq import *
 from dataloading import *
 from utils import *
+
+
+# create logger
+LOG_DIR = "log/"
+os.makedirs(LOG_DIR, exist_ok=True)
+logging.basicConfig(level=logging.INFO,
+                        filename=os.path.join(LOG_DIR,
+                                              datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + "_train_drl.log"))
+logger = logging.getLogger(__name__)
 
 # Default word tokens
 PAD_token = 0  # Used for padding short sentences
