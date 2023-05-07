@@ -1,7 +1,11 @@
 # Race Track 
 This code solves the racetrack programming assignment given to us in  
 Reinforcement Learning lectures at IIITB. You can read the problem  
-statement in `docs/Problem Statement.pdf`.
+statement in `docs/Problem Statement.pdf`.  
+<br> 
+This assignment is inspired from the exercise 5.11 (racetrack programming  
+question) from book [Reinforcement Learning: An Introduction](https://www.andrew.cmu.edu/course/10-703/textbook/BartoSutton.pdf) by [Richard S.  
+Sutton](https://en.wikipedia.org/wiki/Richard_S._Sutton) and [Andrew G. Barto](https://en.wikipedia.org/wiki/Andrew_Barto).
 
 ## Code Structure:
 The `data` directory contains two subdirectories and a file called   
