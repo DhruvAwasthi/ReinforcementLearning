@@ -64,9 +64,11 @@ def evaluate_input(encoder, decoder, searcher, voc):
             # Format and print response sentence
             output_words[:] = [x for x in output_words if not (x == 'EOS' or x == 'PAD')]
             print('Bot:', ' '.join(output_words))
+            logger.info(f"Bot: {' '.join(output_words)}")
 
         except KeyError:
             print("Error: Encountered unknown word.")
+            logger.info("Error: Encountered unknown word.")
 
 
 if __name__ == '__main__':
@@ -84,8 +86,10 @@ if __name__ == '__main__':
     voc, pairs = load_prepare_data(corpus, corpus_name, datafile, save_dir)
     # Print some pairs to validate
     print("\npairs:")
+    logger.info("\npairs:")
     for pair in pairs[:10]:
         print(pair)
+        logger.info(pair)
     pairs = trim_rare_words(voc, pairs, min_count=3)
 
     # Example for validation
@@ -99,6 +103,11 @@ if __name__ == '__main__':
     print("target_variable:", target_variable)
     print("mask:", mask)
     print("max_target_len:", max_target_len)
+    logger.info(f"input_variable: {input_variable}")
+    logger.info(f"lengths: {lengths}")
+    logger.info(f"target_variable: {target_variable}")
+    logger.info(f"mask: {mask}")
+    logger.info(f"max_target_len: {max_target_len}")
 
     # Configure models
     model_name = 'cb_model'
@@ -134,6 +143,7 @@ if __name__ == '__main__':
         voc.__dict__ = checkpoint['voc_dict']
 
     print('Building encoder and decoder ...')
+    logger.info('Building encoder and decoder ...')
     # Initialize word embeddings
     embedding = nn.Embedding(voc.num_words, hidden_size)
     if load_file_name:
@@ -144,12 +154,14 @@ if __name__ == '__main__':
         attn_model, embedding, hidden_size, voc.num_words, decoder_n_layers, dropout)
     if load_file_name:
         print("Now loading saved model state dicts")
+        logger.info("Now loading saved model state dicts")
         encoder.load_state_dict(encoder_sd)
         decoder.load_state_dict(decoder_sd)
     # Use appropriate device
     encoder = encoder.to(device)
     decoder = decoder.to(device)
     print('Models built and ready to go!')
+    logger.info('Models built and ready to go!')
 
     # Configure training/optimization
     clip = 50.0
@@ -166,6 +178,7 @@ if __name__ == '__main__':
 
     # Initialize optimizers
     print('Building optimizers ...')
+    logger.info('Building optimizers ...')
     encoder_optimizer = optim.Adam(encoder.parameters(), lr=learning_rate)
     decoder_optimizer = optim.Adam(
         decoder.parameters(), lr=learning_rate * decoder_learning_ratio)
