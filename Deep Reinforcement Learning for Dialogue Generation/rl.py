@@ -184,6 +184,7 @@ def calculate_rewards(input_var, lengths, target_var, mask, max_target_len, forw
     while (ep_num <= 10):
         
         print(ep_num)
+        logger.info(ep_num)
         #generate current response with the forward model
         _, _, curr_response = rl(ep_input, lengths, ep_target, mask, max_target_len, forward_encoder, forward_decoder, batch_size, teacher_forcing_ratio)
         
@@ -261,6 +262,7 @@ def training_rl_loop(model_name, voc, pairs, batch_size, forward_encoder, forwar
     print("Training...")
     for iteration in range(start_iteration, n_iteration + 1):
         print("Iteration", iteration)
+        logger.info(f"Iteration: {iteration}")
         training_batch = training_batches[iteration - 1]
         # Extract fields from batch
         input_variable, lengths, target_variable, mask, max_target_len = training_batch
@@ -293,6 +295,7 @@ def training_rl_loop(model_name, voc, pairs, batch_size, forward_encoder, forwar
         if iteration % print_every == 0:
             print_loss_avg = print_loss / print_every
             print("Iteration: {}; Percent complete: {:.1f}%; Average loss: {:.4f}".format(iteration, iteration / n_iteration * 100, print_loss_avg))
+            logger.info("Iteration: {}; Percent complete: {:.1f}%; Average loss: {:.4f}".format(iteration, iteration / n_iteration * 100, print_loss_avg))
             print_loss = 0
             
         #SAVE CHECKPOINT TO DO
@@ -331,8 +334,10 @@ if __name__ == "__main__":
     voc, pairs = load_prepare_data(corpus, corpus_name, datafile, save_dir)
     # Print some pairs to validate
     print("\npairs:")
+    logger.info("\npairs:")
     for pair in pairs[:10]:
         print(pair)
+        logger.info(pair)
     pairs = trim_rare_words(voc, pairs, min_count=3)
 
     # Example for validation
@@ -346,6 +351,11 @@ if __name__ == "__main__":
     print("target_variable:", target_variable)
     print("mask:", mask)
     print("max_target_len:", max_target_len)
+    logger.info(f"input_variable: {input_variable}")
+    logger.info(f"lengths: {lengths}")
+    logger.info(f"target_variable: {target_variable}")
+    logger.info(f"mask: {mask}")
+    logger.info(f"max_target_len: {max_target_len}")
 
     # Configure models
     model_name = 'cb_model'
@@ -380,6 +390,7 @@ if __name__ == "__main__":
         voc.__dict__ = checkpoint['voc_dict']
 
     print('Building encoder and decoder ...')
+    logger.info('Building encoder and decoder ...')
     # Initialize word embeddings
     embedding = nn.Embedding(voc.num_words, hidden_size)
     if loadFilename:
@@ -395,6 +406,7 @@ if __name__ == "__main__":
     encoder = encoder.to(device)
     decoder = decoder.to(device)
     print('Models built and ready to go!')
+    logger.info('Models built and ready to go!')
 
     # Configure training/optimization
     clip = 50.0
@@ -411,6 +423,7 @@ if __name__ == "__main__":
 
     # Initialize optimizers
     print('Building optimizers ...')
+    logger.info('Building optimizers ...')
     encoder_optimizer = optim.Adam(encoder.parameters(), lr=learning_rate)
     decoder_optimizer = optim.Adam(
         decoder.parameters(), lr=learning_rate * decoder_learning_ratio)
@@ -431,6 +444,7 @@ if __name__ == "__main__":
 
     # Run training iterations
     print("Starting Training!")
+    logger.info("Starting Training!")
 
     forward_encoder = encoder
     forward_decoder = decoder
@@ -464,6 +478,7 @@ if __name__ == "__main__":
 
     # Initialize optimizers
     print('Building optimizers ...')
+    logger.info('Building optimizers ...')
     forward_encoder_optimizer = optim.Adam(forward_encoder.parameters(), lr=learning_rate)
     forward_decoder_optimizer = optim.Adam(forward_decoder.parameters(), lr=learning_rate * decoder_learning_ratio)
     backward_encoder_optimizer = optim.Adam(backward_encoder.parameters(), lr=learning_rate)
@@ -492,4 +507,5 @@ if __name__ == "__main__":
                 
     # Run training iterations
     print("Starting Training!")
+    logger.info("Starting Training!")
     training_rl_loop(model_name, voc, pairs, batch_size, forward_encoder, forward_encoder_optimizer, forward_decoder, forward_decoder_optimizer, backward_encoder, backward_encoder_optimizer, backward_decoder, backward_decoder_optimizer,teacher_forcing_ratio,n_iteration, print_every, save_every, save_dir)
