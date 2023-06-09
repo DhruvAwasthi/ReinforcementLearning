@@ -83,6 +83,7 @@ if __name__ == '__main__':
 
     # Load/Assemble voc and pairs
     save_dir = os.path.join("data", "save")
+    # save_dir = os.path.join("data", "save_2")
     voc, pairs = load_prepare_data(corpus, corpus_name, datafile, save_dir)
     # Print some pairs to validate
     print("\npairs:")
@@ -122,7 +123,7 @@ if __name__ == '__main__':
 
     # Set checkpoint to load from; set to None if starting from scratch
     load_file_name = "data/save/cb_model/train/2-2_500/1000_checkpoint.tar"
-    # load_file_name = "data/save/RL_model_seq/train/10000_checkpoint.tar"
+    # load_file_name = "data/save_3/RL_model_seq/train/10000_checkpoint.tar"
     checkpoint_iter = 10000  # 4000
     # load_file_name = os.path.join(save_dir, model_name, corpus_name,
     #                            '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size),
