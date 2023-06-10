@@ -148,8 +148,8 @@ class Policy(nn.Module):
 
 
 pixelcopter_hyperparameters = {
-    "h_size": 64,
-    "n_training_episodes": 200000,
+    "h_size": 128,
+    "n_training_episodes": 100000,
     "n_evaluation_episodes": 10,
     "max_t": 50000,
     "gamma": 0.99,
